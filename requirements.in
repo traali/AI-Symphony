@@ -1,0 +1,10 @@
+crewai
+crewai-tools
+litellm
+uvicorn
+pygithub
+gitpython
+python-dotenv
+ruff
+langchain-openai
+openai
