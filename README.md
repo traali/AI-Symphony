@@ -20,3 +20,4 @@ The default workflow is `Process.sequential`. For more complex tasks, you can sw
 
 - **Hierarchical Process**: In `src/main.py`, change `process=Process.sequential` to `process=Process.hierarchical` and assign a `manager_llm` to the `Crew`. This introduces a master conductor to delegate tasks dynamically.
 - **Observability**: For deeper insights into agent performance, integrate tools like LangSmith to trace and debug agent interactions.
+# AI-Symphony
