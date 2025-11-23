@@ -32,11 +32,20 @@ def ignite_symphony(idea: str):
 
         agents = {}
         for name, config in agents_config.items():
-            llm = ChatOpenAI(model=config["llm"], api_key=openrouter_api_key, base_url="[https://openrouter.ai/api/v1](https://openrouter.ai/api/v1)")
-            tools = [tool_mapping[t] for t in config.get("tools", [])]
+            # Force litellm to use openrouter
+            llm_config = {
+                "model": config["llm"],
+                "api_key": openrouter_api_key,
+                "base_url": "https://openrouter.ai/api/v1",
+                "default_headers": {"HTTP-Referer": "http://localhost", "X-Title": "AI Symphony"}
+            }
+            if name == "developer":
+                llm_config["temperature"] = 0
+            llm = ChatOpenAI(**llm_config)
+            # Don't assign tools at agent level
             agents[name] = Agent(
                 role=config["role"], goal=config["goal"], backstory=config["backstory"],
-                llm=llm, tools=tools, verbose=True, allow_delegation=False
+                llm=llm, verbose=True, allow_delegation=False
             )
 
         spec_task = Task(
@@ -46,17 +55,33 @@ def ignite_symphony(idea: str):
         )
         
         code_task = Task(
-            description="Implement the code based *only* on the technical specification. Use the Code Writer Tool to create or modify files. Read existing files first if necessary.",
+            description="""YOU MUST use the Code Writer Tool to create files. Follow these steps:
+1. Read the technical specification from the previous task
+2. For EACH file mentioned in the spec, YOU MUST call the 'Code Writer Tool' 
+3. Use file_path parameter for the filename and content parameter for the code
+4. DO NOT just describe the code - you MUST actually call the tool to write each file
+5. Verify each file was written by checking the tool's response
+
+CRITICAL: If you don't use the Code Writer Tool, the files will NOT be created.""",
             agent=agents["developer"],
             context=[spec_task],
-            expected_output="The full implementation of the code in the workspace."
+            expected_output="Confirmation that all files were written using the Code Writer Tool.",
+            tools=[tool_mapping["code_writer"], tool_mapping["file_reader"]]
         )
         
         review_task = Task(
-            description="Review the implemented code. Read the files to ensure they match the spec. Once satisfied, create a Pull Request with a clear title and summary.",
+            description="""Review the implemented code:
+1. Use the File Read Tool to read the files created by the developer
+2. Ensure they match the specification
+3. Once satisfied, YOU MUST use the Create PR Tool to create a Pull Request
+4. The PR title should be clear and descriptive
+5. The PR body should summarize what was implemented
+
+CRITICAL: You MUST call the Create PR Tool - don't just describe what the PR should contain.""",
             agent=agents["reviewer"],
             context=[code_task],
-            expected_output="A URL to the created Pull Request on GitHub."
+            expected_output="The URL of the created Pull Request.",
+            tools=[tool_mapping["create_pr"], tool_mapping["file_reader"]]
         )
 
         crew = Crew(
@@ -70,6 +95,11 @@ def ignite_symphony(idea: str):
         result = crew.kickoff()
         print("\n🎼 Symphony Complete!")
         print(f"Final result: {result}")
+        
+        print("\n🔍 Debug: Checking workspace contents...")
+        for root, dirs, files in os.walk(workspace.path):
+            for file in files:
+                print(f"  - {os.path.join(root, file)}")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

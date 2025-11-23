@@ -6,10 +6,21 @@ from crewai.tools import BaseTool
 from typing import Optional
 
 class WorkspaceManager:
-    """Manages a temporary Git workspace for agents."""
+    """Manages a Git workspace for agents."""
     def __init__(self, repo_url: str, pat: str):
         self.repo_url = repo_url.replace("https://", f"https://oauth2:{pat}@")
-        self.path = tempfile.mkdtemp(prefix="ai_symphony_")
+        
+        # FIX: Use a fixed path so you can inspect files after the run
+        self.path = os.path.abspath("./workspace_debug")
+        
+        # Clear previous run's workspace if it exists
+        if os.path.exists(self.path):
+            try:
+                shutil.rmtree(self.path)
+            except Exception as e:
+                print(f"⚠️ Warning: Could not clear old workspace: {e}")
+
+        os.makedirs(self.path, exist_ok=True)
         self.repo = self._clone_repo()
 
     def __enter__(self):
@@ -23,8 +34,9 @@ class WorkspaceManager:
         return Repo.clone_from(self.repo_url, self.path)
 
     def cleanup(self):
-        shutil.rmtree(self.path)
-        print(f"🧹 Cleaned up workspace at {self.path}")
+        # FIX: Commented out cleanup to keep files for inspection
+        print(f"🧹 Workspace KEPT for debugging at: {self.path}")
+        # shutil.rmtree(self.path) 
 
 class FileReadTool(BaseTool):
     name: str = "File Read Tool"
@@ -45,6 +57,7 @@ class CodeWriterTool(BaseTool):
     workspace: Optional[WorkspaceManager] = None
 
     def _run(self, file_path: str, content: str) -> str:
+        print(f"📝 WRITING TO FILE: {file_path}")
         full_path = os.path.join(self.workspace.path, file_path)
         os.makedirs(os.path.dirname(full_path), exist_ok=True)
         try:

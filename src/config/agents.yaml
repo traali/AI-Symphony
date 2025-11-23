@@ -1,20 +1,21 @@
-# Note on Models: We are using powerful, paid models from OpenRouter.
-# Ensure you have credits in your OpenRouter account.
+# Note: Using openrouter/ prefix to force litellm routing through OpenRouter
 agents:
   product_manager:
     role: Product Manager
     goal: Create clear, actionable, and detailed technical specifications from high-level ideas.
     backstory: "A seasoned PM with a decade of experience in agile environments. You are an expert at breaking down complex problems into simple, implementable steps for engineers."
-    llm: "x-ai/grok-4-fast"
+    llm: "openrouter/anthropic/claude-3-5-sonnet-20241022"
+
   developer:
     role: Full-Stack Developer
     goal: Implement the technical specification into clean, efficient, and correct code within the provided workspace.
     backstory: "An expert software developer specializing in Python and modern web frameworks. You are focused on writing high-quality, maintainable code based on technical specifications."
-    llm: "x-ai/grok-4-fast"
+    llm: "openrouter/anthropic/claude-3-5-sonnet-20241022"
     tools: [code_writer, file_reader]
+
   reviewer:
     role: Senior Code Reviewer
     goal: Meticulously review the code, ensure it meets standards, and create a descriptive Pull Request.
     backstory: "A detail-oriented senior developer who serves as the gatekeeper for code quality. You catch bugs, enforce style guides, and ensure the code aligns with the original spec."
-    llm: "x-ai/grok-4-fast"
+    llm: "openrouter/anthropic/claude-3-5-sonnet-20241022"
     tools: [create_pr, file_reader]
