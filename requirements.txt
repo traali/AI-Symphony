@@ -501,6 +501,7 @@ sympy==1.14.0
     # via onnxruntime
 tenacity==9.1.2
     # via
+    #   -r requirements.in
     #   chromadb
     #   google-genai
     #   instructor

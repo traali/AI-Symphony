@@ -5,3 +5,6 @@ __pycache__/
 outputs/
 .DS_Store
 .vscode/
+workspace_debug/
+*.bak
+*.bak*

@@ -29,8 +29,9 @@ The process is described in the README, but here is a more detailed workflow:
 1.  **Fork the repo** and create your branch from `main`.
 2.  **Install dependencies**: `uv sync` or `pip install -r requirements.txt`.
 3.  **Test your changes**: Ensure the `minimal_test.py` still passes.
-4.  **Make sure your code lints**.
-5.  **Issue that Pull Request!**
+4.  **Make sure your code lints**: Run `uv run ruff check src/` and `uv run ruff format src/`.
+5.  **Verify CI passes**: GitHub Actions will automatically run tests, linting, and security scans on your PR.
+6.  **Issue that Pull Request!**
 
 ## 💻 Development Workflow
 
@@ -40,9 +41,25 @@ We use `uv` for dependency management.
 # Install dependencies
 uv sync
 
+# Run linting
+uv run ruff check src/
+
+# Format code
+uv run ruff format src/
+
 # Run the main script
 uv run python src/main.py "Your test idea"
 ```
+
+### CI/CD Pipeline
+
+All pull requests automatically trigger our CI/CD pipeline which includes:
+- **Linting**: Code quality checks with ruff
+- **Testing**: Multi-version Python testing (3.10, 3.11, 3.12)
+- **Security**: Vulnerability scanning with bandit and safety
+- **Build Verification**: Ensures all dependencies resolve correctly
+
+You can view the pipeline configuration in `.github/workflows/ci.yml`.
 
 ## 🎨 Style Guide
 

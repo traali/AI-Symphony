@@ -40,6 +40,10 @@ graph LR
 *   **🔧 Tool-Equipped Agents**: Agents have real access to file systems, Git commands, and GitHub APIs.
 *   **🧠 Advanced LLM Support**: Optimized for **Claude 3.5 Sonnet** (via OpenRouter) for superior coding and reasoning capabilities.
 *   **📝 Self-Correcting**: The Reviewer agent acts as a quality gate, ensuring code meets standards before PR creation.
+*   **🔄 Automatic Retry Logic**: Built-in retry mechanism with exponential backoff for GitHub API calls ensures reliability.
+*   **🐛 Debug Mode**: Configurable workspace cleanup - keep files for inspection or auto-cleanup for production.
+*   **📊 Comprehensive Logging**: Structured logging with configurable levels for better observability.
+*   **🚀 CI/CD Ready**: GitHub Actions pipeline for automated testing, linting, and security scanning.
 
 ---
 
