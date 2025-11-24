@@ -2,6 +2,7 @@ import os
 import sys
 import yaml
 import logging
+import argparse
 from dotenv import load_dotenv
 from crewai import Agent, Task, Crew, Process
 from langchain_openai import ChatOpenAI
@@ -22,11 +23,13 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def ignite_symphony(idea: str):
+def ignite_symphony(idea: str, mode: str = "code", debug_mode: bool = True):
     """Execute the AI Symphony workflow to turn an idea into a Pull Request.
 
     Args:
         idea: High-level project idea or feature description
+        mode: 'code' or 'business'
+        debug_mode: Enable debug logging
     """
     logger.info("🎼 Starting AI Symphony")
     logger.debug(f"Project idea: {idea}")
@@ -61,9 +64,7 @@ def ignite_symphony(idea: str):
     logger.info(f"Max retries: {max_retries}")
 
     # Use context manager for robust workspace setup and cleanup
-    with WorkspaceManager(
-        repo_url=repo_url, pat=github_pat, debug_mode=debug_mode
-    ) as workspace:
+    with WorkspaceManager(repo_url=repo_url, pat=github_pat, debug_mode=debug_mode) as workspace:
         logger.info(f"Workspace initialized at: {workspace.path}")
 
         github_client = Github(auth=Auth.Token(github_pat))
@@ -81,49 +82,40 @@ def ignite_symphony(idea: str):
         }
         logger.debug("Tools initialized")
 
-        # Create agents
-        agents = {}
-        for name, config in agents_config.items():
-            logger.debug(f"Creating agent: {name}")
-
-            # Configure LLM with OpenRouter
+        # Helper to create agents
+        def create_agent(name):
+            config = agents_config[name]
             llm_config = {
                 "model": config["llm"],
                 "api_key": openrouter_api_key,
                 "base_url": "https://openrouter.ai/api/v1",
-                "default_headers": {
-                    "HTTP-Referer": "http://localhost",
-                    "X-Title": "AI Symphony",
-                },
+                "default_headers": {"HTTP-Referer": "http://localhost", "X-Title": "AI Symphony"}
             }
-
-            # Use temperature 0 for developer (deterministic code generation)
-            if name == "developer":
+            # Set temperature=0 for deterministic agents
+            if name in ["developer", "financial_modeler"]:
                 llm_config["temperature"] = 0
-
+            
             llm = ChatOpenAI(**llm_config)
-
-            # Create agent (tools assigned at task level)
-            agents[name] = Agent(
-                role=config["role"],
-                goal=config["goal"],
-                backstory=config["backstory"],
-                llm=llm,
-                verbose=True,
-                allow_delegation=False,
+            
+            return Agent(
+                role=config["role"], goal=config["goal"], backstory=config["backstory"],
+                llm=llm, verbose=True, allow_delegation=False
             )
 
-        logger.info(f"Created {len(agents)} agents")
+        if mode == "code":
+            print("🎻 Starting Code Symphony...")
+            pm = create_agent("product_manager")
+            dev = create_agent("developer")
+            rev = create_agent("reviewer")
 
-        # Define tasks
-        spec_task = Task(
-            description=f"Generate a detailed technical specification for the idea: '{idea}'. The spec must be a clear, step-by-step plan for the developer, including file names and the logic to be implemented.",
-            agent=agents["product_manager"],
-            expected_output="A markdown document with the full technical specification.",
-        )
-
-        code_task = Task(
-            description="""YOU MUST use the Code Writer Tool to create files. Follow these steps:
+            spec_task = Task(
+                description=f"Generate a detailed technical specification for the idea: '{idea}'. The spec must be a clear, step-by-step plan for the developer, including file names and the logic to be implemented.",
+                agent=pm,
+                expected_output="A markdown document with the full technical specification."
+            )
+            
+            code_task = Task(
+                description="""YOU MUST use the Code Writer Tool to create files. Follow these steps:
 1. Read the technical specification from the previous task
 2. For EACH file mentioned in the spec, YOU MUST call the 'Code Writer Tool' 
 3. Use file_path parameter for the filename and content parameter for the code
@@ -131,14 +123,14 @@ def ignite_symphony(idea: str):
 5. Verify each file was written by checking the tool's response
 
 CRITICAL: If you don't use the Code Writer Tool, the files will NOT be created.""",
-            agent=agents["developer"],
-            context=[spec_task],
-            expected_output="Confirmation that all files were written using the Code Writer Tool.",
-            tools=[tool_mapping["code_writer"], tool_mapping["file_reader"]],
-        )
-
-        review_task = Task(
-            description="""Review the implemented code:
+                agent=dev,
+                context=[spec_task],
+                expected_output="Confirmation that all files were written using the Code Writer Tool.",
+                tools=[tool_mapping["code_writer"], tool_mapping["file_reader"]]
+            )
+            
+            review_task = Task(
+                description="""Review the implemented code:
 1. Use the File Read Tool to read the files created by the developer
 2. Ensure they match the specification
 3. Once satisfied, YOU MUST use the Create PR Tool to create a Pull Request
@@ -146,25 +138,58 @@ CRITICAL: If you don't use the Code Writer Tool, the files will NOT be created."
 5. The PR body should summarize what was implemented
 
 CRITICAL: You MUST call the Create PR Tool - don't just describe what the PR should contain.""",
-            agent=agents["reviewer"],
-            context=[code_task],
-            expected_output="The URL of the created Pull Request.",
-            tools=[tool_mapping["create_pr"], tool_mapping["file_reader"]],
-        )
+                agent=rev,
+                context=[code_task],
+                expected_output="The URL of the created Pull Request.",
+                tools=[tool_mapping["create_pr"], tool_mapping["file_reader"]]
+            )
 
-        # Create and run crew
-        crew = Crew(
-            agents=list(agents.values()),
-            tasks=[spec_task, code_task, review_task],
-            process=Process.sequential,
-            verbose=True,
-        )
+            crew = Crew(agents=[pm, dev, rev], tasks=[spec_task, code_task, review_task], process=Process.sequential, verbose=True)
 
-        logger.info("🚀 Igniting AI Symphony...")
+        elif mode == "business":
+            print("💼 Starting Business Idea Sparrer...")
+            optimist = create_agent("optimist")
+            critic = create_agent("critic")
+            finance = create_agent("financial_modeler")
+
+            hype_task = Task(
+                description=f"Analyze the business idea: '{idea}'. Identify the massive upside, potential viral loops, and why this could be a billion-dollar company. Be enthusiastic!",
+                agent=optimist,
+                expected_output="A high-energy pitch deck outline highlighting the best-case scenario."
+            )
+
+            roast_task = Task(
+                description=f"Analyze the same idea: '{idea}'. Ruthlessly critique it. Find the fatal flaws, regulatory risks, and reasons it might fail. Be the 'Devil's Advocate'.",
+                agent=critic,
+                expected_output="A critical risk assessment report."
+            )
+
+            model_task = Task(
+                description="""Synthesize the Optimist's pitch and the Critic's risks. 
+Then, build a realistic 3-year revenue model. 
+Calculate:
+1. Customer Acquisition Cost (CAC) assumptions
+2. Lifetime Value (LTV) assumptions
+3. Break-even point
+4. Monthly Recurring Revenue (MRR) projections
+
+Finally, produce a 'Verdict' report: Should we build this? (Yes/No/Pivot)""",
+                agent=finance,
+                context=[hype_task, roast_task],
+                expected_output="A comprehensive Business Validation Report with financial projections and a final verdict.",
+                tools=[tool_mapping["code_writer"]] # To save the report
+            )
+
+            crew = Crew(agents=[optimist, critic, finance], tasks=[hype_task, roast_task, model_task], process=Process.sequential, verbose=True)
+
+        else:
+            print(f"❌ Unknown mode: {mode}")
+            return
+
+        print(f"🚀 Igniting AI Symphony in {mode.upper()} mode...")
         result = crew.kickoff()
-
-        logger.info("🎼 Symphony Complete!")
-        logger.info(f"Final result: {result}")
+        print("\n🎼 Symphony Complete!")
+        print(f"Final result: {result}")
 
         # Debug: List workspace contents
         if debug_mode:
@@ -175,14 +200,14 @@ CRITICAL: You MUST call the Create PR Tool - don't just describe what the PR sho
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print('Usage: python src/main.py "Your project idea"')
-        sys.exit(1)
-
-    project_idea = " ".join(sys.argv[1:])
-
+    parser = argparse.ArgumentParser(description="AI Symphony - Autonomous Agent Teams")
+    parser.add_argument("idea", help="The idea to build or validate")
+    parser.add_argument("--mode", choices=["code", "business"], default="code", help="The mode to run in: 'code' for shipping features, 'business' for validating ideas")
+    
+    args = parser.parse_args()
+    
     try:
-        ignite_symphony(project_idea)
+        ignite_symphony(args.idea, args.mode)
     except Exception as e:
         logger.error(f"Fatal error: {e}", exc_info=True)
         sys.exit(1)
