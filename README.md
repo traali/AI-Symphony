@@ -1,49 +1,67 @@
 # 🎼 AI Symphony
-> **Turn Ideas into Pull Requests with a Crew of Autonomous AI Agents**
+> **Autonomous AI Teams That Ship Production-Ready Code – Or Spark Your Next Big Idea**
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue?style=for-the-badge&logo=python&logoColor=white)
 ![CrewAI](https://img.shields.io/badge/Powered%20by-CrewAI-orange?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 ![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge)
 
-**AI Symphony** is an advanced agentic framework that orchestrates a team of specialized AI agents to autonomously plan, code, and review software features. Simply provide a high-level idea, and watch as the symphony conducts a perfect performance, resulting in a production-ready GitHub Pull Request.
+**AI Symphony** is an advanced agentic framework that orchestrates a team of specialized AI agents to autonomously plan, code, and review software features. 
+
+**One prompt → A full AI crew (Product Manager → Developer → Reviewer) → Real Pull Request in your repo.**
 
 ---
 
-## 🚀 How It Works
+## 🚀 Why Developers & Founders Are Obsessed
 
-AI Symphony employs a **sequential agentic workflow** where each agent passes their output to the next, ensuring high-quality, verified code.
+| Your Current Pain                          | AI Symphony's Solution                                               |
+|--------------------------------------------|----------------------------------------------------------------------|
+| Copy-pasting AI code → context loss & bugs | Agents clone your repo, write real files, commit & open PRs          |
+| PRs from tools like Devin are $500+/month  | Open-source, free with local LLMs – mix Claude, Grok-4, or free Qwen |
+| Business ideas die in notebooks            | **New: Business Mode** – AI crew spars ideas into actionable plans   |
+| Rigid agent setups (one role per tool)     | YAML-configurable crews: Swap roles, add agents, tweak prompts       |
+| "Just one tweak" turns into a weekend      | Iteration loops: Reviewer rejects → Developer fixes → Tests pass     |
 
-```mermaid
-graph LR
-    User[👤 User Idea] --> PM[👩‍💼 Product Manager]
-    PM -->|Technical Spec| Dev[👨‍💻 Developer]
-    Dev -->|Source Code| Rev[🕵️ Code Reviewer]
-    Rev -->|Pull Request| GitHub[🐙 GitHub]
-    
-    style PM fill:#ff9f43,stroke:#333,stroke-width:2px
-    style Dev fill:#54a0ff,stroke:#333,stroke-width:2px
-    style Rev fill:#5f27cd,stroke:#333,stroke-width:2px
+---
+
+## ⚡ Dual Modes: Code Like a Pro, Think Like a Founder
+
+### Mode 1: Code Symphony (The Original – Ship Features 10x Faster)
+Turn vague ideas into tested, documented code. Perfect for indie hackers, side projects, or accelerating teams.
+
+```bash
+ai-symphony "Create a Streamlit leaderboard for top volleyball players by points, with Plotly charts and dark mode"
 ```
+*   **Crew Flow**: Product Manager specs it → Developer codes & commits → Reviewer polishes → PR opens
+*   **Output**: Real GitHub Pull Request with files, tests, docs. Merge in one click.
 
-### The Crew
-1.  **👩‍💼 Product Manager**: Analyzes your idea and drafts a detailed, step-by-step technical specification.
-2.  **👨‍💻 Full-Stack Developer**: Writes clean, efficient code based *strictly* on the spec, handling file creation and logic implementation.
-3.  **🕵️ Senior Code Reviewer**: Validates the implementation against the spec, runs checks, and submits a professional Pull Request.
+### Mode 2: Business Idea Sparrer (Validate & Monetize Ideas)
+Got a startup spark? Let an AI debate team refine it: Optimist hypes the upside, Critic pokes holes, Financial Modeler crunches numbers.
+
+```bash
+ai-symphony --mode business "Idea: Subscription-based AI coach for amateur volleyball teams analyzing game footage"
+```
+*   **Crew Flow**:
+    1.  **Positive Agent (Optimist)**: "This could disrupt youth sports – 10M users, viral growth via team shares!"
+    2.  **Critical Agent (Devil's Advocate)**: "Market saturation? Privacy risks with video uploads? Churn from inaccurate AI?"
+    3.  **Business Calculator Agent**: Builds a model – "Year 1: $500K revenue at 20% margins; Break-even in 18 months."
+*   **Output**: Markdown report with pitch deck outline, risk matrix, and 5-year projections.
 
 ---
 
-## ✨ Key Features
+## 🛠️ Real-World Examples That Ship Today
 
-*   **🤖 Autonomous Workflow**: From idea to PR with zero human intervention in the middle.
-*   **🛡️ Isolated Workspaces**: Agents work in temporary, sandboxed Git environments to ensure safety.
-*   **🔧 Tool-Equipped Agents**: Agents have real access to file systems, Git commands, and GitHub APIs.
-*   **🧠 Advanced LLM Support**: Optimized for **Claude 3.5 Sonnet** (via OpenRouter) for superior coding and reasoning capabilities.
-*   **📝 Self-Correcting**: The Reviewer agent acts as a quality gate, ensuring code meets standards before PR creation.
-*   **🔄 Automatic Retry Logic**: Built-in retry mechanism with exponential backoff for GitHub API calls ensures reliability.
-*   **🐛 Debug Mode**: Configurable workspace cleanup - keep files for inspection or auto-cleanup for production.
-*   **📊 Comprehensive Logging**: Structured logging with configurable levels for better observability.
-*   **🚀 CI/CD Ready**: GitHub Actions pipeline for automated testing, linting, and security scanning.
+### Code Mode
+*   **"Upgrade to FastAPI 0.112 + fix async bugs"** → Migrates your entire backend.
+*   **"Add Stripe subscriptions with webhooks"** → Boilerplate + tests done.
+*   **"Convert Jupyter notebooks to Streamlit app"** → Interactive dashboard PR.
+
+### Business Mode (Sparrer in Action)
+*   **Input**: "App for remote team icebreakers using AR filters"
+*   **Optimist**: "Huge B2B play – Slack integration could hit 1M DAU like Donut.ai!"
+*   **Critic**: "AR dev costs $200K+; Zoom fatigue means low adoption – pivot to async?"
+*   **Calculator**: "Freemium: $2M ARR Year 2 (10K teams @ $20/mo); 3x ROI on seed."
+*   **Output**: Full plan PDF + "Build MVP? Y/N" decision matrix.
 
 ---
 
@@ -72,8 +90,6 @@ graph LR
 3.  **Install dependencies**
     ```bash
     uv sync
-    # OR
-    pip install -r requirements.txt
     ```
 
 ### Usage
@@ -83,8 +99,6 @@ Conduct the symphony with a single command:
 ```bash
 uv run python src/main.py "Create a landing page with a dark mode toggle"
 ```
-
-*Sit back and relax. In a few minutes, check your GitHub repository for a new Pull Request!*
 
 ---
 
@@ -102,12 +116,6 @@ AI Symphony is built on a robust, modular architecture designed for reliability 
 ## 🤝 Contributing
 
 We welcome contributions! Please see `CONTRIBUTING.md` for details on how to join the orchestra.
-
-1.  Fork the Project
-2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4.  Push to the Branch (`git push origin feature/AmazingFeature`)
-5.  Open a Pull Request
 
 ---
 
