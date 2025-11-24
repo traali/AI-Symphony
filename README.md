@@ -10,6 +10,9 @@
 
 **One prompt → A full AI crew (Product Manager → Developer → Reviewer) → Real Pull Request in your repo.**
 
+> **Note**: This branch (`feature/business-mode`) includes the experimental **Business Idea Sparrer**. 
+> The `main` branch is dedicated to the core **Code Symphony** workflow. Switch branches to toggle between pure coding and business validation.
+
 ---
 
 ## 🚀 Why Developers & Founders Are Obsessed
