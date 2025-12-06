@@ -14,3 +14,4 @@ pytest-mock
 pytest-cov
 mypy
 pre-commit
+streamlit

@@ -109,6 +109,30 @@ ai-symphony --mode business "Subscription-based AI coach for amateur sports team
 
 # Debug mode - keep workspace files for inspection
 ai-symphony --debug "Add user authentication with JWT"
+
+# Dry-run mode - preview what would happen without calling LLMs
+ai-symphony --dry-run "Create a REST API"
+
+# Budget limit - stop if costs exceed threshold
+ai-symphony --budget 0.50 "Add unit tests for the API"
+```
+
+### Web Dashboard
+
+Run the Streamlit dashboard for a visual interface:
+
+```bash
+streamlit run src/dashboard.py
+```
+
+### Docker
+
+```bash
+# Run the web dashboard
+docker-compose up dashboard
+
+# Run CLI in Docker
+docker-compose run cli "Your idea here"
 ```
 
 ---
@@ -121,6 +145,7 @@ AI Symphony is built on a robust, modular architecture designed for reliability 
 *   **Workspace Manager**: A custom context manager that handles ephemeral Git cloning, file operations, and cleanup.
 *   **Tool Abstraction**: Custom `BaseTool` implementations for `FileRead`, `CodeWrite`, and `GitHubPR` operations.
 *   **Configuration**: Centralized agent definitions in `src/config/agents.yaml` allow for easy tuning of prompts and models.
+*   **Cost Tracking**: Built-in OpenRouter cost tracking with budget enforcement.
 
 ---
 

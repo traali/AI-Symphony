@@ -1,0 +1,43 @@
+# AI Symphony Docker Compose Configuration
+#
+# Usage:
+#   docker-compose up dashboard   # Run web dashboard
+#   docker-compose run cli "Your idea here"  # Run CLI
+#
+# Required: Create a .env file with your API keys (see .env.example)
+
+services:
+  # Web Dashboard (Streamlit)
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    environment:
+      - LOG_FORMAT=text
+      - LOG_LEVEL=INFO
+    command: [ "streamlit", "run", "src/dashboard.py", "--server.port=8501", "--server.address=0.0.0.0" ]
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8501/_stcore/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # CLI Runner
+  cli:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      - LOG_FORMAT=json
+      - LOG_LEVEL=INFO
+    # Override entrypoint to pass arguments
+    # Usage: docker-compose run cli "Create a todo app"
+    profiles:
+      - cli

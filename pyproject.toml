@@ -34,6 +34,7 @@ branch = true
 omit = [
     "src/__init__.py",
     "src/tools/__init__.py",
+    "src/dashboard.py",
 ]
 
 [tool.coverage.report]

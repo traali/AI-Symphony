@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 from github import Auth, Github
 from langchain_openai import ChatOpenAI
 
+from src.cost_tracker import get_cost_tracker, reset_cost_tracker, set_budget_limit
 from src.tools.github_tools import CreatePRTool
 from src.tools.workspace_tools import CodeWriterTool, FileReadTool, WorkspaceManager
 
@@ -62,14 +63,33 @@ setup_logging()
 logger = logging.getLogger(__name__)
 
 
-def ignite_symphony(idea: str, mode: str = "code", debug_mode: bool = True):
+def ignite_symphony(idea: str, mode: str = "code", debug_mode: bool = True, dry_run: bool = False):
     """Execute the AI Symphony workflow to turn an idea into a Pull Request.
 
     Args:
         idea: High-level project idea or feature description
         mode: 'code' or 'business'
         debug_mode: Enable debug logging
+        dry_run: If True, preview actions without calling LLMs
     """
+    if dry_run:
+        print("🔍 DRY RUN MODE - No LLM calls will be made")
+        print("=" * 50)
+        print(f"Mode: {mode.upper()}")
+        print(f"Idea: {idea}")
+        print("=" * 50)
+        print("\n📋 What would happen:")
+        if mode == "code":
+            print("  1. Product Manager would create technical spec")
+            print("  2. Developer would write code files")
+            print("  3. Reviewer would create a Pull Request")
+        else:
+            print("  1. Optimist would highlight upsides")
+            print("  2. Critic would identify risks")
+            print("  3. Financial Modeler would create projections")
+        print("\n✅ Dry run complete. Use without --dry-run to execute.")
+        return
+
     logger.info("🎼 Starting AI Symphony")
     logger.debug(f"Project idea: {idea}")
 
@@ -244,6 +264,11 @@ Finally, produce a 'Verdict' report: Should we build this? (Yes/No/Pivot)""",
         print("\n🎼 Symphony Complete!")
         print(f"Final result: {result}")
 
+        # Display cost summary
+        cost_tracker = get_cost_tracker()
+        if cost_tracker.request_count > 0:
+            print("\n" + cost_tracker.format_summary())
+
         # Debug: List workspace contents
         if debug_mode:
             logger.debug("Workspace contents:")
@@ -272,11 +297,30 @@ def cli():
         action="store_true",
         help="Enable debug mode (keeps workspace after completion)",
     )
+    parser.add_argument(
+        "--budget",
+        type=float,
+        default=None,
+        help="Budget limit in USD (e.g., --budget 0.50 for $0.50 max)",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview what would happen without calling LLMs",
+    )
 
     args = parser.parse_args()
 
+    # Set budget limit if specified
+    if args.budget:
+        set_budget_limit(args.budget)
+        print(f"💰 Budget limit set to ${args.budget:.2f}")
+
+    # Reset cost tracker for new run
+    reset_cost_tracker()
+
     try:
-        ignite_symphony(args.idea, args.mode, debug_mode=args.debug)
+        ignite_symphony(args.idea, args.mode, debug_mode=args.debug, dry_run=args.dry_run)
     except KeyboardInterrupt:
         logger.info("Interrupted by user")
         sys.exit(130)
