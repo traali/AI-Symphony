@@ -1,25 +1,64 @@
+import argparse
+import json
+import logging
 import os
 import sys
-import yaml
-import logging
-import argparse
-from dotenv import load_dotenv
-from crewai import Agent, Task, Crew, Process
-from langchain_openai import ChatOpenAI
-from github import Github, Auth
+from datetime import datetime
 
-from src.tools.workspace_tools import WorkspaceManager, CodeWriterTool, FileReadTool
+import yaml
+from crewai import Agent, Crew, Process, Task
+from dotenv import load_dotenv
+from github import Auth, Github
+from langchain_openai import ChatOpenAI
+
 from src.tools.github_tools import CreatePRTool
+from src.tools.workspace_tools import CodeWriterTool, FileReadTool, WorkspaceManager
 
 load_dotenv()
 
-# Configure logging
-log_level = os.getenv("LOG_LEVEL", "INFO").upper()
-logging.basicConfig(
-    level=getattr(logging, log_level),
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
+
+class JSONFormatter(logging.Formatter):
+    """JSON formatter for structured logging in production environments."""
+
+    def format(self, record):
+        log_record = {
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+        }
+        if record.exc_info:
+            log_record["exception"] = self.formatException(record.exc_info)
+        if hasattr(record, "extra"):
+            log_record.update(record.extra)
+        return json.dumps(log_record)
+
+
+def setup_logging():
+    """Configure logging based on environment variables."""
+    log_level = os.getenv("LOG_LEVEL", "INFO").upper()
+    log_format = os.getenv("LOG_FORMAT", "text").lower()
+
+    handler = logging.StreamHandler()
+
+    if log_format == "json":
+        handler.setFormatter(JSONFormatter())
+    else:
+        handler.setFormatter(
+            logging.Formatter(
+                "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+                datefmt="%Y-%m-%d %H:%M:%S",
+            )
+        )
+
+    root_logger = logging.getLogger()
+    root_logger.setLevel(getattr(logging, log_level))
+    root_logger.handlers = []
+    root_logger.addHandler(handler)
+
+
+# Configure logging on module load
+setup_logging()
 logger = logging.getLogger(__name__)
 
 
@@ -35,7 +74,7 @@ def ignite_symphony(idea: str, mode: str = "code", debug_mode: bool = True):
     logger.debug(f"Project idea: {idea}")
 
     # Load agent configuration
-    with open("src/config/agents.yaml", "r") as f:
+    with open("src/config/agents.yaml") as f:
         agents_config = yaml.safe_load(f)["agents"]
 
     # Get environment variables
@@ -89,17 +128,21 @@ def ignite_symphony(idea: str, mode: str = "code", debug_mode: bool = True):
                 "model": config["llm"],
                 "api_key": openrouter_api_key,
                 "base_url": "https://openrouter.ai/api/v1",
-                "default_headers": {"HTTP-Referer": "http://localhost", "X-Title": "AI Symphony"}
+                "default_headers": {"HTTP-Referer": "http://localhost", "X-Title": "AI Symphony"},
             }
             # Set temperature=0 for deterministic agents
             if name in ["developer", "financial_modeler"]:
                 llm_config["temperature"] = 0
-            
+
             llm = ChatOpenAI(**llm_config)
-            
+
             return Agent(
-                role=config["role"], goal=config["goal"], backstory=config["backstory"],
-                llm=llm, verbose=True, allow_delegation=False
+                role=config["role"],
+                goal=config["goal"],
+                backstory=config["backstory"],
+                llm=llm,
+                verbose=True,
+                allow_delegation=False,
             )
 
         if mode == "code":
@@ -111,13 +154,13 @@ def ignite_symphony(idea: str, mode: str = "code", debug_mode: bool = True):
             spec_task = Task(
                 description=f"Generate a detailed technical specification for the idea: '{idea}'. The spec must be a clear, step-by-step plan for the developer, including file names and the logic to be implemented.",
                 agent=pm,
-                expected_output="A markdown document with the full technical specification."
+                expected_output="A markdown document with the full technical specification.",
             )
-            
+
             code_task = Task(
                 description="""YOU MUST use the Code Writer Tool to create files. Follow these steps:
 1. Read the technical specification from the previous task
-2. For EACH file mentioned in the spec, YOU MUST call the 'Code Writer Tool' 
+2. For EACH file mentioned in the spec, YOU MUST call the 'Code Writer Tool'
 3. Use file_path parameter for the filename and content parameter for the code
 4. DO NOT just describe the code - you MUST actually call the tool to write each file
 5. Verify each file was written by checking the tool's response
@@ -126,9 +169,9 @@ CRITICAL: If you don't use the Code Writer Tool, the files will NOT be created."
                 agent=dev,
                 context=[spec_task],
                 expected_output="Confirmation that all files were written using the Code Writer Tool.",
-                tools=[tool_mapping["code_writer"], tool_mapping["file_reader"]]
+                tools=[tool_mapping["code_writer"], tool_mapping["file_reader"]],
             )
-            
+
             review_task = Task(
                 description="""Review the implemented code:
 1. Use the File Read Tool to read the files created by the developer
@@ -141,10 +184,15 @@ CRITICAL: You MUST call the Create PR Tool - don't just describe what the PR sho
                 agent=rev,
                 context=[code_task],
                 expected_output="The URL of the created Pull Request.",
-                tools=[tool_mapping["create_pr"], tool_mapping["file_reader"]]
+                tools=[tool_mapping["create_pr"], tool_mapping["file_reader"]],
             )
 
-            crew = Crew(agents=[pm, dev, rev], tasks=[spec_task, code_task, review_task], process=Process.sequential, verbose=True)
+            crew = Crew(
+                agents=[pm, dev, rev],
+                tasks=[spec_task, code_task, review_task],
+                process=Process.sequential,
+                verbose=True,
+            )
 
         elif mode == "business":
             print("💼 Starting Business Idea Sparrer...")
@@ -155,18 +203,18 @@ CRITICAL: You MUST call the Create PR Tool - don't just describe what the PR sho
             hype_task = Task(
                 description=f"Analyze the business idea: '{idea}'. Identify the massive upside, potential viral loops, and why this could be a billion-dollar company. Be enthusiastic!",
                 agent=optimist,
-                expected_output="A high-energy pitch deck outline highlighting the best-case scenario."
+                expected_output="A high-energy pitch deck outline highlighting the best-case scenario.",
             )
 
             roast_task = Task(
                 description=f"Analyze the same idea: '{idea}'. Ruthlessly critique it. Find the fatal flaws, regulatory risks, and reasons it might fail. Be the 'Devil's Advocate'.",
                 agent=critic,
-                expected_output="A critical risk assessment report."
+                expected_output="A critical risk assessment report.",
             )
 
             model_task = Task(
-                description="""Synthesize the Optimist's pitch and the Critic's risks. 
-Then, build a realistic 3-year revenue model. 
+                description="""Synthesize the Optimist's pitch and the Critic's risks.
+Then, build a realistic 3-year revenue model.
 Calculate:
 1. Customer Acquisition Cost (CAC) assumptions
 2. Lifetime Value (LTV) assumptions
@@ -177,10 +225,15 @@ Finally, produce a 'Verdict' report: Should we build this? (Yes/No/Pivot)""",
                 agent=finance,
                 context=[hype_task, roast_task],
                 expected_output="A comprehensive Business Validation Report with financial projections and a final verdict.",
-                tools=[tool_mapping["code_writer"]] # To save the report
+                tools=[tool_mapping["code_writer"]],  # To save the report
             )
 
-            crew = Crew(agents=[optimist, critic, finance], tasks=[hype_task, roast_task, model_task], process=Process.sequential, verbose=True)
+            crew = Crew(
+                agents=[optimist, critic, finance],
+                tasks=[hype_task, roast_task, model_task],
+                process=Process.sequential,
+                verbose=True,
+            )
 
         else:
             print(f"❌ Unknown mode: {mode}")
@@ -194,20 +247,43 @@ Finally, produce a 'Verdict' report: Should we build this? (Yes/No/Pivot)""",
         # Debug: List workspace contents
         if debug_mode:
             logger.debug("Workspace contents:")
-            for root, dirs, files in os.walk(workspace.path):
+            for root, _dirs, files in os.walk(workspace.path):
                 for file in files:
                     logger.debug(f"  - {os.path.join(root, file)}")
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="AI Symphony - Autonomous Agent Teams")
+def cli():
+    """Command-line interface entry point for ai-symphony."""
+    parser = argparse.ArgumentParser(
+        prog="ai-symphony",
+        description="AI Symphony - Autonomous Agent Teams for Code Generation",
+        epilog="Examples:\n  ai-symphony 'Create a REST API for user management'\n  ai-symphony --mode business 'AI-powered pet food delivery'",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser.add_argument("idea", help="The idea to build or validate")
-    parser.add_argument("--mode", choices=["code", "business"], default="code", help="The mode to run in: 'code' for shipping features, 'business' for validating ideas")
-    
+    parser.add_argument(
+        "--mode",
+        choices=["code", "business"],
+        default="code",
+        help="Mode: 'code' for shipping features, 'business' for validating ideas",
+    )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Enable debug mode (keeps workspace after completion)",
+    )
+
     args = parser.parse_args()
-    
+
     try:
-        ignite_symphony(args.idea, args.mode)
+        ignite_symphony(args.idea, args.mode, debug_mode=args.debug)
+    except KeyboardInterrupt:
+        logger.info("Interrupted by user")
+        sys.exit(130)
     except Exception as e:
         logger.error(f"Fatal error: {e}", exc_info=True)
         sys.exit(1)
+
+
+if __name__ == "__main__":
+    cli()

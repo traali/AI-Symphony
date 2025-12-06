@@ -88,6 +88,15 @@ jobs:
       run: |
         pytest tests/ -v --tb=short --cov=src --cov-report=term-missing --cov-fail-under=70
 
+    - name: Verify requirements.txt is in sync
+      run: |
+        uv pip compile requirements.in -o requirements.txt.new
+        if ! diff -q requirements.txt requirements.txt.new > /dev/null 2>&1; then
+          echo "::warning::requirements.txt is out of sync with requirements.in"
+          echo "Run 'uv pip compile requirements.in -o requirements.txt' to update"
+        fi
+        rm -f requirements.txt.new
+
   security:
     name: Security Scan
     runs-on: ubuntu-latest

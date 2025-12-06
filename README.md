@@ -1,16 +1,17 @@
 # 🎼 AI Symphony
 > **Autonomous AI Teams That Ship Production-Ready Code – Or Spark Your Next Big Idea**
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-blue?style=for-the-badge&logo=python&logoColor=white)
-![CrewAI](https://img.shields.io/badge/Powered%20by-CrewAI-orange?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
-![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge)
+[![CI](https://github.com/traali/AI-Symphony/actions/workflows/ci.yml/badge.svg)](https://github.com/traali/AI-Symphony/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![CrewAI](https://img.shields.io/badge/Powered%20by-CrewAI-orange)](https://www.crewai.io/)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![Coverage](https://img.shields.io/badge/Coverage-95%25-brightgreen)](tests/)
 
-**AI Symphony** is an advanced agentic framework that orchestrates a team of specialized AI agents to autonomously plan, code, and review software features. 
+**AI Symphony** is an advanced agentic framework that orchestrates a team of specialized AI agents to autonomously plan, code, and review software features.
 
 **One prompt → A full AI crew (Product Manager → Developer → Reviewer) → Real Pull Request in your repo.**
 
-> **Note**: This branch (`feature/business-mode`) includes the experimental **Business Idea Sparrer**. 
+> **Note**: This branch (`feature/business-mode`) includes the experimental **Business Idea Sparrer**.
 > The `main` branch is dedicated to the core **Code Symphony** workflow. Switch branches to toggle between pure coding and business validation.
 
 ---
@@ -100,7 +101,14 @@ ai-symphony --mode business "Idea: Subscription-based AI coach for amateur volle
 Conduct the symphony with a single command:
 
 ```bash
-uv run python src/main.py "Create a landing page with a dark mode toggle"
+# Code mode (default) - generate code and create a PR
+ai-symphony "Create a landing page with a dark mode toggle"
+
+# Business mode - validate and analyze a business idea
+ai-symphony --mode business "Subscription-based AI coach for amateur sports teams"
+
+# Debug mode - keep workspace files for inspection
+ai-symphony --debug "Add user authentication with JWT"
 ```
 
 ---
