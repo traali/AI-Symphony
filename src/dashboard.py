@@ -144,14 +144,51 @@ def main():
     with st.sidebar:
         st.header("⚙️ Configuration")
 
-        # Environment check
-        missing_vars = check_environment()
-        if missing_vars:
-            st.error(f"Missing environment variables: {', '.join(missing_vars)}")
-            st.info("Create a `.env` file with your API keys. See `.env.example`.")
-            st.stop()
+        # API Keys section - allow override in UI
+        st.markdown("### 🔑 API Keys")
+        st.caption("Keys entered here are stored in session only, not saved to disk.")
+
+        # Get from environment or session state
+        openrouter_key = st.text_input(
+            "OpenRouter API Key",
+            value=os.getenv("OPENROUTER_API_KEY", ""),
+            type="password",
+            help="Get your key at openrouter.ai",
+            key="openrouter_key",
+        )
+
+        github_pat = st.text_input(
+            "GitHub PAT",
+            value=os.getenv("GITHUB_PAT", ""),
+            type="password",
+            help="Personal Access Token with repo access",
+            key="github_pat",
+        )
+
+        repo_url = st.text_input(
+            "Repository URL",
+            value=os.getenv("REPO_URL", ""),
+            help="Full HTTPS URL to target repo",
+            key="repo_url",
+        )
+
+        # Validate keys are provided
+        missing_keys = []
+        if not openrouter_key:
+            missing_keys.append("OpenRouter API Key")
+        if not github_pat:
+            missing_keys.append("GitHub PAT")
+        if not repo_url:
+            missing_keys.append("Repository URL")
+
+        if missing_keys:
+            st.warning(f"Missing: {', '.join(missing_keys)}")
         else:
-            st.success("✅ Environment configured")
+            st.success("✅ All keys configured")
+            # Set in environment for this session
+            os.environ["OPENROUTER_API_KEY"] = openrouter_key
+            os.environ["GITHUB_PAT"] = github_pat
+            os.environ["REPO_URL"] = repo_url
 
         st.divider()
 
@@ -174,7 +211,6 @@ def main():
 
         # Info
         st.markdown("### 📊 Current Settings")
-        repo_url = os.getenv("REPO_URL", "Not set")
         repo_name = "/".join(repo_url.split("/")[-2:]).replace(".git", "") if repo_url else "N/A"
         st.text(f"Repository: {repo_name}")
         st.text(f"Mode: {mode}")
