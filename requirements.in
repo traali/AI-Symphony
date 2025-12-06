@@ -9,3 +9,8 @@ ruff
 langchain-openai
 openai
 tenacity
+pytest
+pytest-mock
+pytest-cov
+mypy
+pre-commit
