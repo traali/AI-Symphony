@@ -1,0 +1,14 @@
+.welcome-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f5f5f5;
+}
+
+.welcome-message {
+    font-family: Arial, sans-serif;
+    font-size: 2.5rem;
+    color: #333;
+    text-align: center;
+}
