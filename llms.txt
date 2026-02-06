@@ -1,0 +1,26 @@
+# AI Symphony
+
+AI Symphony is a multi-agent CLI tool that orchestrates AI agents to generate production-ready code or validate business ideas. It uses CrewAI to coordinate specialized agents (PM, Developer, Reviewer, Financial Modeler).
+
+## Architecture
+- CLI: Click (Python)
+- Agent Framework: CrewAI
+- LLM Backend: OpenAI API / Local models
+- Output: GitHub Pull Requests or Markdown reports
+
+## File Structure
+- symphony/           - Main package
+- symphony/agents/    - Agent definitions (PM, Developer, Critic, etc.)
+- symphony/crews/     - Crew orchestration logic
+- symphony/tools/     - Custom tools for agents
+- templates/          - Prompt templates
+
+## Key Decisions
+- Dual modes: Code generation vs Business validation
+- GitHub API integration for direct PR creation
+- Modular agent design for easy swapping
+
+## How to Extend
+1. Add new agents in symphony/agents/
+2. Create new crew workflows in symphony/crews/
+3. Add custom tools in symphony/tools/
