@@ -1,26 +1,34 @@
 # AI Symphony
 
-AI Symphony is a multi-agent CLI tool that orchestrates AI agents to generate production-ready code or validate business ideas. It uses CrewAI to coordinate specialized agents (PM, Developer, Reviewer, Financial Modeler).
+> Built by Arto Oinonen
+
+AI Symphony is an orchestrator for autonomous AI development teams. It uses CrewAI and LiteLLM to coordinate specialized agents (Product Manager, Developer, Reviewer) that collaborate to turn high-level ideas into production-ready Pull Requests or validated business reports.
 
 ## Architecture
-- CLI: Click (Python)
-- Agent Framework: CrewAI
-- LLM Backend: OpenAI API / Local models
-- Output: GitHub Pull Requests or Markdown reports
+- **Orchestration**: CrewAI (Sequential process)
+- **Model Interface**: LiteLLM via OpenRouter (supports 100+ models including local LLMs)
+- **Workspace**: Custom Git/File management via GitPython
+- **Integrations**: PyGithub for PR management
 
 ## File Structure
-- symphony/           - Main package
-- symphony/agents/    - Agent definitions (PM, Developer, Critic, etc.)
-- symphony/crews/     - Crew orchestration logic
-- symphony/tools/     - Custom tools for agents
-- templates/          - Prompt templates
+- `src/main.py`: Entry point and crew kickoff logic.
+- `src/tools/`: Custom Tool implementations (Workspace, GitHub).
+- `src/config/`: Agent and task YAML configurations.
+- `docs/`: Architecture documentation and decision records.
+- `samples/`: Example outputs from different modes.
 
 ## Key Decisions
-- Dual modes: Code generation vs Business validation
-- GitHub API integration for direct PR creation
-- Modular agent design for easy swapping
+- **Unified LLM Access**: Using LiteLLM to allow seamless model swapping (cloud or local).
+- **Tool-Oriented Development**: Agents are forced to use workspace tools for all file operations.
+- **Ephemeral Workspaces**: All work happens in temporary, clean clones of the target repo.
+- **Dual Modes**: Code mode for PRs, Business mode for idea validation reports.
 
-## How to Extend
-1. Add new agents in symphony/agents/
-2. Create new crew workflows in symphony/crews/
-3. Add custom tools in symphony/tools/
+## Installation
+```bash
+pip install git+https://github.com/traali/AI-Symphony.git
+```
+
+## 2026 Roadmap
+- **MCP**: Standardize tool access via Model Context Protocol.
+- **Sandboxing**: Secure execution in ephemeral microVM environments.
+- **Feedback**: Implement recursive test-fix loops for autonomous reliability.

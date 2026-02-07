@@ -1,14 +1,27 @@
 # 🎼 AI Symphony
+
 > **Autonomous AI Teams That Ship Production-Ready Code – Or Spark Your Next Big Idea**
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue?style=for-the-badge&logo=python&logoColor=white)
 ![CrewAI](https://img.shields.io/badge/Powered%20by-CrewAI-orange?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
-![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge)
+![CI](https://img.shields.io/github/actions/workflow/status/traali/AI-Symphony/ci.yml?branch=main&style=for-the-badge&label=CI)
 
-**AI Symphony** is an advanced agentic framework that orchestrates a team of specialized AI agents to autonomously plan, code, and review software features. 
+## 1. Problem
+Developers and founders often face a "blank page" problem or get bogged down in boilerplate code. Existing AI tools often lack repository context, leading to manual copy-pasting, context loss, and high subscription costs for "black box" agentic services.
 
-**One prompt → A full AI crew (Product Manager → Developer → Reviewer) → Real Pull Request in your repo.**
+## 2. Solution
+**AI Symphony** is an open-source, agentic framework that orchestrates specialized AI teams (Product Manager, Developer, Reviewer) to autonomously plan, code, and review software features. It operates directly on your repository, creating real Pull Requests without manual intervention. It also features a "Business Mode" for rapid startup idea validation.
+
+## 3. Architecture
+AI Symphony is built on a modular architecture designed for reliability and transparency.
+
+- **Orchestration Engine**: Powered by `CrewAI`, managing agent roles, task delegation, and context sharing.
+- **LLM Backend**: Uses `LiteLLM` via OpenRouter to support 100+ models (Claude, GPT, Gemini, Llama).
+- **Workspace Manager**: A custom context manager for ephemeral Git cloning and secure file operations.
+- **Custom Tools**: Specialized tools for `FileRead`, `CodeWrite`, and `GitHubPR` operations.
+
+See [architecture.md](docs/architecture.md) for a deeper dive.
 
 ---
 
@@ -17,99 +30,111 @@
 | Your Current Pain                          | AI Symphony's Solution                                               |
 |--------------------------------------------|----------------------------------------------------------------------|
 | Copy-pasting AI code → context loss & bugs | Agents clone your repo, write real files, commit & open PRs          |
-| PRs from tools like Devin are $500+/month  | Open-source, free with local LLMs – mix Claude, Grok-4, or free Qwen |
+| PRs from tools like Devin are $500+/month  | Open-source, free with local LLMs – mix Claude, GPT-4, or Qwen|
 | Business ideas die in notebooks            | **New: Business Mode** – AI crew spars ideas into actionable plans   |
 | Rigid agent setups (one role per tool)     | YAML-configurable crews: Swap roles, add agents, tweak prompts       |
-| "Just one tweak" turns into a weekend      | Iteration loops: Reviewer rejects → Developer fixes → Tests pass     |
 
 ---
 
 ## ⚡ Dual Modes: Code Like a Pro, Think Like a Founder
 
-### Mode 1: Code Symphony (The Original – Ship Features 10x Faster)
-Turn vague ideas into tested, documented code. Perfect for indie hackers, side projects, or accelerating teams.
-
+### Mode 1: Code Symphony (Ship Features 10x Faster)
 ```bash
-ai-symphony "Create a Streamlit leaderboard for top volleyball players by points, with Plotly charts and dark mode"
+uv run python src/main.py "Create a Streamlit leaderboard for top volleyball players by points, with Plotly charts and dark mode"
 ```
-*   **Crew Flow**: Product Manager specs it → Developer codes & commits → Reviewer polishes → PR opens
-*   **Output**: Real GitHub Pull Request with files, tests, docs. Merge in one click.
+*   **Yields**: Real GitHub Pull Request with files, tests, and docs.
 
-### Mode 2: Business Idea Sparrer (Validate & Monetize Ideas)
-Got a startup spark? Let an AI debate team refine it: Optimist hypes the upside, Critic pokes holes, Financial Modeler crunches numbers.
-
+### Mode 2: Business Idea Sparrer (Validate & Monetize)
 ```bash
-ai-symphony --mode business "Idea: Subscription-based AI coach for amateur volleyball teams analyzing game footage"
+uv run python src/main.py --mode business "Idea: Subscription-based AI coach for teams"
 ```
-*   **Crew Flow**:
-    1.  **Positive Agent (Optimist)**: "This could disrupt youth sports – 10M users, viral growth via team shares!"
-    2.  **Critical Agent (Devil's Advocate)**: "Market saturation? Privacy risks with video uploads? Churn from inaccurate AI?"
-    3.  **Business Calculator Agent**: Builds a model – "Year 1: $500K revenue at 20% margins; Break-even in 18 months."
-*   **Output**: Markdown report with pitch deck outline, risk matrix, and 5-year projections.
+*   **Yields**: Markdown report with pitch deck outline, risk matrix, and 5-year projections.
 
----
-
-## 🛠️ Real-World Examples That Ship Today
-
-### Code Mode
-*   **"Upgrade to FastAPI 0.112 + fix async bugs"** → Migrates your entire backend.
-*   **"Add Stripe subscriptions with webhooks"** → Boilerplate + tests done.
-*   **"Convert Jupyter notebooks to Streamlit app"** → Interactive dashboard PR.
-
-### Business Mode (Sparrer in Action)
-*   **Input**: "App for remote team icebreakers using AR filters"
-*   **Optimist**: "Huge B2B play – Slack integration could hit 1M DAU like Donut.ai!"
-*   **Critic**: "AR dev costs $200K+; Zoom fatigue means low adoption – pivot to async?"
-*   **Calculator**: "Freemium: $2M ARR Year 2 (10K teams @ $20/mo); 3x ROI on seed."
-*   **Output**: Full plan PDF + "Build MVP? Y/N" decision matrix.
+📂 See [samples/business_mode_example.md](samples/business_mode_example.md) for a complete example output.
 
 ---
 
 ## ⚡ Quick Start
 
 ### Prerequisites
-*   Python 3.10+
-*   `uv` (recommended) or `pip`
-*   GitHub Personal Access Token (PAT)
-*   OpenRouter API Key
+- Python 3.10+
+- `uv` (recommended) or `pip`
+- GitHub Personal Access Token (PAT)
+- OpenRouter API Key
 
-### Installation
+> [!CAUTION]
+> **Security: GitHub PAT Scoping**  
+> When creating your GitHub Personal Access Token, use **minimal permissions**:
+> - ✅ `repo` (for private repos) or `public_repo` (for public repos only)
+> - ❌ Do NOT grant `admin`, `delete_repo`, or `workflow` permissions
+> - ❌ Never commit your `.env` file or share your token
+> 
+> Treat your PAT like a password. Rotate it regularly.
 
-1.  **Clone the repository**
-    ```bash
-    git clone https://github.com/traali/AI-Symphony.git
-    cd AI-Symphony
-    ```
+### Installation & Setup
 
-2.  **Set up environment**
-    ```bash
-    cp .env.example .env
-    # Edit .env with your API keys and Repo URL
-    ```
-
-3.  **Install dependencies**
-    ```bash
-    uv sync
-    ```
-
-### Usage
-
-Conduct the symphony with a single command:
-
+**Option 1: Clone & Run (Recommended)**
 ```bash
-uv run python src/main.py "Create a landing page with a dark mode toggle"
+git clone https://github.com/traali/AI-Symphony.git
+cd AI-Symphony
+cp .env.example .env  # Add your keys
+uv sync
+uv run python src/main.py "Your idea here"
+```
+
+**Option 2: Install via pip**
+```bash
+pip install git+https://github.com/traali/AI-Symphony.git
 ```
 
 ---
 
-## 🏗️ Architecture
+## 🤖 Using Local LLMs (Free & Private)
 
-AI Symphony is built on a robust, modular architecture designed for reliability and scalability.
+AI Symphony supports local LLMs through LiteLLM, enabling cost-free and fully private operation.
 
-*   **Orchestration Engine**: Powered by `crewai`, managing agent lifecycle, task delegation, and context sharing.
-*   **Workspace Manager**: A custom context manager that handles ephemeral Git cloning, file operations, and cleanup.
-*   **Tool Abstraction**: Custom `BaseTool` implementations for `FileRead`, `CodeWrite`, and `GitHubPR` operations.
-*   **Configuration**: Centralized agent definitions in `src/config/agents.yaml` allow for easy tuning of prompts and models.
+### Ollama Setup
+```bash
+# 1. Install Ollama: https://ollama.ai
+# 2. Pull a model
+ollama pull qwen2.5:14b
+
+# 3. Update your .env
+OPENROUTER_API_KEY=ollama  # Use 'ollama' as placeholder
+LITELLM_MODEL=ollama/qwen2.5:14b
+```
+
+### LM Studio Setup
+```bash
+# 1. Download LM Studio: https://lmstudio.ai
+# 2. Load any GGUF model and start the local server
+# 3. Update your .env
+OPENROUTER_API_KEY=lm-studio  # Placeholder
+LITELLM_MODEL=openai/local-model
+LITELLM_API_BASE=http://localhost:1234/v1
+```
+
+> [!TIP]
+> For best results with code generation, use models with 14B+ parameters like `qwen2.5:14b`, `codellama:34b`, or `deepseek-coder:33b`.
+
+---
+
+## 🧪 Testing
+
+The repository includes several test scripts to verify your setup:
+
+```bash
+# Verify LLM connectivity
+uv run python test_llm.py
+
+# Test workspace tools directly
+uv run python test_tools_directly.py
+
+# Run a minimal end-to-end test (creates a PR)
+uv run python minimal_test.py
+```
+
+CI status is automatically verified on every push. See the badge above for current status.
 
 ---
 
@@ -120,5 +145,5 @@ We welcome contributions! Please see `CONTRIBUTING.md` for details on how to joi
 ---
 
 <div align="center">
-  <b>Built with ❤️ by the AI Symphony Team</b>
+  <b>Built with ❤️ by Arto Oinonen</b>
 </div>
